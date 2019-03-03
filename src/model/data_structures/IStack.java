@@ -1,6 +1,6 @@
 package model.data_structures;
 
-public interface IStack<T> extends Iterable<T>{
+public interface IStack<T extends Comparable<T>> extends Iterable<T>{
 	
 	/**
 	 * Retorna true si la Pila esta vacia

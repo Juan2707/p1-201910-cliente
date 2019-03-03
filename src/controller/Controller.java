@@ -1,12 +1,23 @@
 package controller;
 
+import java.io.FileReader;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Scanner;
+
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 
 import model.data_structures.IQueue;
 import model.data_structures.IStack;
+import model.data_structures.Queue;
+import model.data_structures.Stack;
+import model.util.Sort;
+import model.util.comparePorId;
+import model.util.compareePorFecha;
 import model.vo.VODaylyStatistic;
 import model.vo.VOMovingViolations;
 import model.vo.VOViolationCode;
@@ -15,7 +26,12 @@ import view.MovingViolationsManagerView;
 public class Controller {
 
 	private MovingViolationsManagerView view;
+	
+	Comparable<VOMovingViolations>[] ordenador;
 
+	private Stack<VOMovingViolations > almacenamiento;
+	
+	List <String[]> info;
 	public Controller() {
 		view = new MovingViolationsManagerView();
 	}
@@ -178,7 +194,54 @@ public class Controller {
 	
 	
 	public void loadMovingViolations(int numeroCuatrimestre) {
+		almacenamiento= new Stack<VOMovingViolations>();
+		if(numeroCuatrimestre==1){
+			cargarEnStack("./data/Moving_Violations_Issued_In_January_2018.csv");
+			cargarEnStack("./data/Moving_Violations_Issued_In_February_2018.csv");
+			cargarEnStack("./data/Moving_Violations_Issued_In_March_2018.csv");
+			cargarEnStack("./data/Moving_Violations_Issued_In_April_2018.csv");
+		}
+		else if(numeroCuatrimestre==2){
+			cargarEnStack("./data/Moving_Violations_Issued_In_May_2018.csv");
+			cargarEnStack("./data/Moving_Violations_Issued_In_June_2018.csv");
+			cargarEnStack("./data/Moving_Violations_Issued_In_July_2018.csv");
+			cargarEnStack("./data/Moving_Violations_Issued_In_August_2018.csv");
+		}
+		else if(numeroCuatrimestre==3){
+			cargarEnStack("./data/Moving_Violations_Issued_In_September_2018.csv");
+			cargarEnStack("./data/Moving_Violations_Issued_In_October_2018.csv");
+			cargarEnStack("./data/Moving_Violations_Issued_In_November_2018.csv");
+			cargarEnStack("./data/Moving_Violations_Issued_In_December_2018.csv");
+		}
 		
+	}
+	public void cargarEnStack(String ruta){
+		try{
+			FileReader n1 = new FileReader(ruta);
+			CSVReader n2 = new CSVReaderBuilder(n1).withSkipLines(1).build();
+			
+			 info = n2.readAll();
+			Comparable<VOMovingViolations>[] ordenador = new Comparable[info.size()];
+			
+			
+			for(int i=0;i<info.size();i++){
+				ordenador[i]=(new VOMovingViolations(Integer.parseInt(info.get(i)[0]), info.get(i)[2], info.get(i)[13],Integer.parseInt(info.get(i)[9]), info.get(i)[12], info.get(i)[15],(double) Integer.parseInt(info.get(i)[8]), info.get(i)[14]));
+			}
+			Sort.ordenarMergeSort(ordenador);
+			for(int i=0;i<info.size();i++){
+				almacenamiento.push((VOMovingViolations)ordenador[i]);
+			}
+			
+			
+			
+			n1.close();
+			n2.close();
+			
+		}
+		
+		catch(Exception e){
+			view.printMessage(e.getMessage());
+		}
 	}
 	
 	public IQueue <VODaylyStatistic> getDailyStatistics () {
@@ -190,17 +253,123 @@ public class Controller {
 	}
 
 	public boolean verifyObjectIDIsUnique() {
-		return false;
+		boolean b=true;
+		ordenarMergeSort(ordenador,new comparePorId());
+		int ubicacion= 0;
+		for (int i=1; i<ordenador.length;i++){
+			if(ordenador[i].compareTo((VOMovingViolations)ordenador[i-1])==0){
+				ubicacion=i;
+				b=false;
+			}
+			
+		}
+		return b;
 	}
 
 	public IQueue<VOMovingViolations> getMovingViolationsInRange(LocalDateTime fechaInicial,
 			LocalDateTime fechaFinal) {
-		// TODO Auto-generated method stub
+		ordenarMergeSort(ordenador,new compareePorFecha());
+		Queue<VOMovingViolations> guardar= new Queue<>();
+		boolean comenzarGuardado=false;
+		boolean terminar=false;
+		for(int i=0;i<ordenador.length&&terminar==false;i++){
+			VOMovingViolations actual = (VOMovingViolations)ordenador[i];
+			if(fechaInicial.compareTo(LocalDateTime.parse(actual.getTicketIssueDate()))<=0){
+				comenzarGuardado=true;
+			}
+			if(fechaFinal.compareTo(LocalDateTime.parse(actual.getTicketIssueDate()))<=0){
+				terminar=true;
+			}
+			else{
+				if(comenzarGuardado==true){
+				guardar.enqueue(actual);
+			}
+			}
+			return guardar;
+		}
+		
 		return null;
 	}
+	private static boolean less(Comparable v, Comparable w, Comparator<VOMovingViolations> comparador)
+	{
+		boolean xd=false;
+		if(v!=null&&w!=null){
+			if(comparador.compare((VOMovingViolations)v,(VOMovingViolations) w)<0)
+		{
+			xd=true;
+			// TODO implementar
+		}
+		else{
+			xd=false;
+		}
+		}
+		
+		return xd;
+	}
+	
+	/**
+	 * Intercambiar los datos de las posicion i y j
+	 * @param datos contenedor de datos
+	 * @param i posicion del 1er elemento a intercambiar
+	 * @param j posicion del 2o elemento a intercambiar
+	 */
+	private static void exchange( Comparable[] datos, int i, int j)
+	{
+		Comparable dato	= datos[i];
+		datos[i]=datos[j];
+		datos[j]=dato;
+		// TODO implementar
+	}
+	
+	public static void ordenarMergeSort( Comparable[ ] datos , Comparator<VOMovingViolations> comparador) {
+		Comparable[] aux = new Comparable[datos.length]; // Allocate space just once.
+		 sortParaMegreSort(datos, aux, 0, datos.length - 1, comparador);
+		// TODO implementar el algoritmo MergeSort
+	}
+
+	private static void  mergeParaMergeSort(Comparable[] a, Comparable[] aux, int lo, int mid, int hi, Comparator<VOMovingViolations> comparador)
+	{ 
+		 int i = lo, j = mid+1;
+		 for (int k = lo; k <= hi; k++) 
+		 aux[k] = a[k];
+		 for (int k = lo; k <= hi; k++) 
+		 if (i > mid) a[k] = aux[j++];
+		 else if (j > hi ) a[k] = aux[i++];
+		 else if (less(aux[j], aux[i], comparador)) a[k] = aux[j++];
+		 else a[k] = aux[i++];
+		}
+	
+	private static void  sortParaMegreSort(Comparable[] a, Comparable[] aux, int lo, int hi, Comparator<VOMovingViolations> comparador)
+	 { 
+		
+		 if (hi <= lo) return;
+		 int mid = lo + (hi - lo)/2;
+		 sortParaMegreSort(a, aux, lo, mid,comparador);
+		 sortParaMegreSort(a, aux, mid+1, hi, comparador);
+		 mergeParaMergeSort(a, aux, lo, mid, hi, comparador); 
+		 } 
 
 	public double[] avgFineAmountByViolationCode(String violationCode3) {
-		return new double [] {0.0 , 0.0};
+		double cantidadNoAccidentados=0;
+		double cantidadFineAMTNoAccidentados=0;
+		double cantidadAccidentados=0;
+		double cantidadFineAMTAccidentados=0;
+		for(int i=0;i<ordenador.length;i++){
+			VOMovingViolations actual= (VOMovingViolations) ordenador[i];
+			if(actual.getViolationCode().equals(violationCode3)){
+				if(actual.getAccidentIndicator().equals("No")){
+					cantidadNoAccidentados++;
+					cantidadFineAMTNoAccidentados+=actual.getFineAMT();
+				}
+				else{
+					cantidadAccidentados++;
+					cantidadFineAMTAccidentados+=actual.getFineAMT();
+				}
+			}
+		}
+		double promedio1= cantidadNoAccidentados/cantidadFineAMTNoAccidentados;
+		double promedio2= cantidadAccidentados/cantidadFineAMTAccidentados;
+		return new double [] {promedio1, promedio2};
 	}
 
 	public IStack<VOMovingViolations> getMovingViolationsAtAddressInRange(String addressId,
