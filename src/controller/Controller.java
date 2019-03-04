@@ -257,13 +257,19 @@ public class Controller {
 	public boolean verifyObjectIDIsUnique() {
 		boolean b=true;
 		ordenarMergeSort(ordenador,new comparePorId(),0,ordenador.length-1);
-		int ubicacion= 0;
+		int ubicacion= -1;
 		for (int i=1; i<ordenador.length;i++){
 			if(ordenador[i].compareTo((VOMovingViolations)ordenador[i-1])==0){
 				ubicacion=i;
 				b=false;
 			}
 			
+		}
+		if(ubicacion<0){
+			System.out.println("No hay Ids repetidos");
+		}
+		else{
+			System.out.println("Se encuentra repetido el id "+((VOMovingViolations)ordenador[ubicacion]).objectId());
 		}
 		return b;
 	}
