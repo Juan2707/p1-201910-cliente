@@ -16,6 +16,8 @@ import model.data_structures.IStack;
 import model.data_structures.Queue;
 import model.data_structures.Stack;
 import model.util.Sort;
+import model.util.compareParaAddressId;
+import model.util.comparePorAddressId;
 import model.util.comparePorId;
 import model.util.compareePorFecha;
 import model.vo.VODaylyStatistic;
@@ -254,7 +256,7 @@ public class Controller {
 
 	public boolean verifyObjectIDIsUnique() {
 		boolean b=true;
-		ordenarMergeSort(ordenador,new comparePorId());
+		ordenarMergeSort(ordenador,new comparePorId(),0,ordenador.length-1);
 		int ubicacion= 0;
 		for (int i=1; i<ordenador.length;i++){
 			if(ordenador[i].compareTo((VOMovingViolations)ordenador[i-1])==0){
@@ -268,16 +270,16 @@ public class Controller {
 
 	public IQueue<VOMovingViolations> getMovingViolationsInRange(LocalDateTime fechaInicial,
 			LocalDateTime fechaFinal) {
-		ordenarMergeSort(ordenador,new compareePorFecha());
+		ordenarMergeSort(ordenador,new compareePorFecha(),0,ordenador.length-1);
 		Queue<VOMovingViolations> guardar= new Queue<>();
 		boolean comenzarGuardado=false;
 		boolean terminar=false;
 		for(int i=0;i<ordenador.length&&terminar==false;i++){
 			VOMovingViolations actual = (VOMovingViolations)ordenador[i];
-			if(fechaInicial.compareTo(LocalDateTime.parse(actual.getTicketIssueDate()))<=0){
+			if(fechaInicial.compareTo(convertirFecha_Hora_LDT(actual.getTicketIssueDate()))<=0){
 				comenzarGuardado=true;
 			}
-			if(fechaFinal.compareTo(LocalDateTime.parse(actual.getTicketIssueDate()))<=0){
+			if(fechaFinal.compareTo(convertirFecha_Hora_LDT(actual.getTicketIssueDate()))<=0){
 				terminar=true;
 			}
 			else{
@@ -321,9 +323,9 @@ public class Controller {
 		// TODO implementar
 	}
 	
-	public static void ordenarMergeSort( Comparable[ ] datos , Comparator<VOMovingViolations> comparador) {
+	public static void ordenarMergeSort( Comparable[ ] datos , Comparator<VOMovingViolations> comparador, int inicio, int finall) {
 		Comparable[] aux = new Comparable[datos.length]; // Allocate space just once.
-		 sortParaMegreSort(datos, aux, 0, datos.length - 1, comparador);
+		 sortParaMegreSort(datos, aux, inicio, finall, comparador);
 		// TODO implementar el algoritmo MergeSort
 	}
 
@@ -339,7 +341,7 @@ public class Controller {
 		 else a[k] = aux[i++];
 		}
 	
-	private static void  sortParaMegreSort(Comparable[] a, Comparable[] aux, int lo, int hi, Comparator<VOMovingViolations> comparador)
+	private static void  sortParaMegreSort(Comparable[] a, Comparable[] aux, int lo, int hi, Comparator<VOMovingViolations> comparador )
 	 { 
 		
 		 if (hi <= lo) return;
@@ -374,10 +376,47 @@ public class Controller {
 
 	public IStack<VOMovingViolations> getMovingViolationsAtAddressInRange(String addressId,
 			LocalDate fechaInicial, LocalDate fechaFinal) {
-		// TODO Auto-generated method stub
+		
+		ordenarMergeSort(ordenador, new compareParaAddressId(),0,ordenador.length-1);
+		int indice= busqueda(new compareParaAddressId(), addressId, ordenador, 0, ordenador.length-1);
+		int inicio=indice;
+		boolean inicioEncontrado=false;
+		VOMovingViolations primero =(VOMovingViolations)ordenador[indice];
+		if(primero.getAddressId().equalsIgnoreCase(addressId)){
+			while(((VOMovingViolations)  ordenador[indice]).getAddressId().compareToIgnoreCase(((VOMovingViolations) ordenador[indice+1]).getAddressId())==0){
+				
+			}
+		}
+		for (int i=0;i<ordenador.length;i++){
+			
+		}
 		return null;
 	}
 
+	public int busqueda(Comparator comp, Comparable comp2, Comparable[] help, int inicio, int finall){
+		int retorno=-1;
+		while(inicio<=finall){
+			int me = inicio+(finall-inicio)/2;
+			if(finall!=1){
+				if(comp.compare(comp2, help[me])==0&& comp.compare(comp2, help[me-1])==0)
+					finall=me-1;
+				else if(comp.compare(comp2, help[me])>0)
+					finall=me-1;
+				else if(comp.compare(comp2, help[me])<0)
+					inicio=me+1;
+				else return me;
+			}
+			else{
+				if(comp.compare(comp2, help[me])>0)
+					finall=me-1;
+				else if(comp.compare(comp2, help[me])<0)
+					inicio=me+1;
+				else return me;
+				retorno=me;
+			}
+		}
+		return retorno;
+	}
 	public IQueue<VOViolationCode> violationCodesByFineAmt(double limiteInf5, double limiteSup5) {
 		// TODO Auto-generated method stub
 		return null;

@@ -90,13 +90,13 @@ public class VOMovingViolations implements Comparable<VOMovingViolations>{
 		}
 		return retorno;
 	}
-	public int getStreetSegId() {
+	public String getStreetSegId() {
 		
-		return 0;
+		return "";
 	}
-	public int getAddressId() {
-		// TODO Auto-generated method stub
-		return 0;
+	public String getAddressId() {
+		
+		return "";
 	}
 	public double getFineAMT(){
 		return fineAMT;
