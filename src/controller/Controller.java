@@ -376,7 +376,7 @@ public class Controller {
 
 	public IStack<VOMovingViolations> getMovingViolationsAtAddressInRange(String addressId,
 			LocalDate fechaInicial, LocalDate fechaFinal) {
-		
+		Stack<VOMovingViolations> xd = new Stack<>();
 		ordenarMergeSort(ordenador, new compareParaAddressId(),0,ordenador.length-1);
 		int indice= busqueda(new compareParaAddressId(), addressId, ordenador, 0, ordenador.length-1);
 		int inicio=indice;
@@ -384,13 +384,24 @@ public class Controller {
 		VOMovingViolations primero =(VOMovingViolations)ordenador[indice];
 		if(primero.getAddressId().equalsIgnoreCase(addressId)){
 			while(((VOMovingViolations)  ordenador[indice]).getAddressId().compareToIgnoreCase(((VOMovingViolations) ordenador[indice+1]).getAddressId())==0){
+				ordenarMergeSort(ordenador, new compareePorFecha(), inicio, indice);
+				VOMovingViolations comparador = new VOMovingViolations(0, "", fechaInicial.toString(), 0, "", "", 0.0, "");
+				int indicadorAlComienzo = busqueda(new compareePorFecha(),comparador,ordenador,inicio, indice);
+				int indicadorAlFinal = busqueda(new compareePorFecha(),comparador,ordenador,indicadorAlComienzo+1, indice);
+				ordenarMergeSort(ordenador, new compareParaAddressId(), indicadorAlComienzo, indicadorAlFinal);
+				
+				for (int i=indicadorAlComienzo;	i<indicadorAlFinal;i++){
+					xd.push((VOMovingViolations) ordenador[i]);
+				}
+				
+				
 				
 			}
 		}
-		for (int i=0;i<ordenador.length;i++){
+		
 			
-		}
-		return null;
+		
+		return xd;
 	}
 
 	public int busqueda(Comparator comp, Comparable comp2, Comparable[] help, int inicio, int finall){
